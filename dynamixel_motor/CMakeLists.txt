@@ -15,8 +15,14 @@ find_package(rclcpp REQUIRED)
 
 include_directories(include)
 
+file(GLOB WORKBENCH "src/dynamixel_workbench/*.cpp")
+file(GLOB SDK "src/dynamixel_sdk/*.cpp")
+
 add_executable(dynamixel_motor
-  src/dynamixel_motor.cpp)
+  src/dynamixel_motor.cpp
+  ${WORKBENCH}
+  ${SDK}
+)
 
 ament_target_dependencies(dynamixel_motor
   rclcpp
