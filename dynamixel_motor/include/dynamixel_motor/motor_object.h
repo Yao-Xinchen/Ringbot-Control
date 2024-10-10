@@ -14,9 +14,9 @@ class MotorObject
 public:
     MotorObject(std::string rid, int hid);
 
-    void set_goal(double pos, double vel, double tor);
+    void set_goal(double pos, double vel);
 
-    [[nodiscard]] std::tuple<double, double, double> get_state() const;
+    [[nodiscard]] std::tuple<double, double> get_state() const;
 
     void print_info() const;
 
@@ -26,9 +26,17 @@ private:
     std::string rid; // ROS ID
     int hid; // Hardware ID
 
+    float goal_pos;
+    float goal_vel;
+
+    float fb_pos;
+    float fb_vel;
+
     std::thread tx_thread;
 
     void tx_loop();
+    
+    void rx_loop();
 };
 
 #endif // MOTOR_OBJECT_H

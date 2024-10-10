@@ -48,7 +48,7 @@ private:
             if (iter == motors_.end()) continue;
 
             auto& motor = iter->second;
-            motor->set_goal(msg->pos[i], msg->vel[i], msg->tor[i]);
+            motor->set_goal(msg->pos[i], msg->vel[i]);
         }
     }
 
@@ -57,11 +57,10 @@ private:
         MotorData msg{};
         for (auto& [id, motor] : motors_)
         {
-            auto [pos, vel, tor] = motor->get_state();
+            auto [pos, vel] = motor->get_state();
             msg.id.push_back(id);
             msg.pos.push_back(pos);
             msg.vel.push_back(vel);
-            msg.tor.push_back(tor);
         }
         state_pub_->publish(msg);
     }

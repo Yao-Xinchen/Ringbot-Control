@@ -1,5 +1,7 @@
 #include "dynamixel_motor/motor_object.h"
 
+#include "rclcpp/rclcpp.hpp"
+
 std::unique_ptr<DynamixelWorkbench> MotorObject::dxl_wb = std::make_unique<DynamixelWorkbench>();
 
 MotorObject::MotorObject(std::string rid, int hid)
@@ -10,16 +12,18 @@ MotorObject::MotorObject(std::string rid, int hid)
     tx_thread = std::thread(&MotorObject::tx_loop, this);
 
     dxl_wb->ledOn(hid);
+    dxl_wb->torqueOn(hid);
 }
 
-void MotorObject::set_goal(double pos, double vel, double tor)
+void MotorObject::set_goal(double pos, double vel)
 {
-    // TODO: Set goal position, velocity, and torque
+    goal_pos = pos;
+    goal_vel = vel;
 }
 
-std::tuple<double, double, double> MotorObject::get_state() const
+std::tuple<double, double> MotorObject::get_state() const
 {
-    return {0, 0, 0};
+    return {fb_pos, fb_vel};
 }
 
 void MotorObject::print_info() const
@@ -30,4 +34,20 @@ void MotorObject::print_info() const
 
 void MotorObject::tx_loop()
 {
+    // TODO: Implement this function
+}
+
+void MotorObject::rx_loop()
+{
+    while (rclcpp::ok())
+    {
+        bool success = true;
+        success &= dxl_wb->getRadian(hid, &fb_pos);
+        success &= dxl_wb->getVelocity(hid, &fb_vel);
+
+        if (!success)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "Failed to get feedback data");
+        }
+    }
 }
