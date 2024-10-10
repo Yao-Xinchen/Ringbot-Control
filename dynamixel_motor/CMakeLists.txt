@@ -20,6 +20,7 @@ file(GLOB SDK "src/dynamixel_sdk/*.cpp")
 
 add_executable(dynamixel_motor
   src/dynamixel_motor.cpp
+  src/motor_object.cpp
   ${WORKBENCH}
   ${SDK}
 )
