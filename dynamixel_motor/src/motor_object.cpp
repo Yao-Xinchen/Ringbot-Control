@@ -1,18 +1,26 @@
 #include "dynamixel_motor/motor_object.h"
 
 #include "rclcpp/rclcpp.hpp"
+#include <cmath>
 
-std::unique_ptr<DynamixelWorkbench> MotorObject::dxl_wb = std::make_unique<DynamixelWorkbench>();
+std::unique_ptr<DynamixelWorkbench> MotorObject::dxl_wb = nullptr;
 
 MotorObject::MotorObject(std::string rid, int hid)
 {
     this->rid = rid;
     this->hid = hid;
 
-    tx_thread = std::thread(&MotorObject::tx_loop, this);
+    if (dxl_wb == nullptr)
+    {
+        dxl_wb = std::make_unique<DynamixelWorkbench>();
+        // TODO: replace "device_name" with the actual device name
+        dxl_wb->init("device_name", 1000000, nullptr);
+    }
 
     dxl_wb->ledOn(hid);
     dxl_wb->torqueOn(hid);
+
+    tx_thread = std::thread(&MotorObject::tx_loop, this);
 }
 
 void MotorObject::set_goal(double pos, double vel)
@@ -34,7 +42,18 @@ void MotorObject::print_info() const
 
 void MotorObject::tx_loop()
 {
-    // TODO: Implement this function
+    while (rclcpp::ok())
+    {
+        if (!std::isnan(goal_pos))
+        {
+            dxl_wb->goalPosition(hid, goal_pos);
+        }
+
+        if (!std::isnan(goal_vel))
+        {
+            dxl_wb->goalVelocity(hid, goal_vel);
+        }
+    }
 }
 
 void MotorObject::rx_loop()
