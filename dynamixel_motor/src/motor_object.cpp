@@ -19,6 +19,21 @@ MotorObject::MotorObject(std::string rid, int hid, std::string mode)
     tx_thread = std::thread(&MotorObject::tx_loop, this);
 }
 
+void MotorObject::init(std::string port_name, uint32_t baud_rate)
+{
+    dxl_wb = std::make_unique<DynamixelWorkbench>();
+
+    if (dxl_wb->begin(port_name.c_str(), baud_rate))
+    {
+        RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "Succeeded to open port");
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "Failed to open port");
+        rclcpp::shutdown();
+    }
+}
+
 void MotorObject::set_goal(double pos, double vel)
 {
     goal_pos = pos;
