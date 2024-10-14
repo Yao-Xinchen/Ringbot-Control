@@ -67,6 +67,12 @@ private:
 
     void motor_init()
     {
+        // init dxl_wb
+        string port_name = this->declare_parameter("dxl_port", "/dev/ttyUSB0");
+        int baud_rate = this->declare_parameter("dxl_baudrate", 57600);
+        MotorObject::init(port_name, baud_rate);
+
+        // init motors
         vector<bool> motor_enables{};
         motor_enables = this->declare_parameter("motor.enables", motor_enables);
         int motor_count = motor_enables.size();
@@ -76,13 +82,17 @@ private:
         vector<int64_t> motor_hids{};
         motor_hids = this->declare_parameter("motor.hids", motor_hids);
 
+        vector<string> motor_modes{};
+        motor_modes = this->declare_parameter("motor.modes", motor_modes);
+
         for (int i = 0; i < motor_count; i++)
         {
             if (!motor_enables[i]) continue;
 
-            string rid = motor_rids[i];
-            int hid = motor_hids[i];
-            motors_[rid] = std::make_unique<MotorObject>(rid, hid);
+            string& rid = motor_rids[i];
+            int64_t& hid = motor_hids[i];
+            string& mode = motor_modes[i];
+            motors_[rid] = std::make_unique<MotorObject>(rid, hid, mode);
         }
 
         for (auto& [id, motor] : motors_)

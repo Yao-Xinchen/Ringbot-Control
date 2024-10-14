@@ -5,17 +5,13 @@
 
 std::unique_ptr<DynamixelWorkbench> MotorObject::dxl_wb = nullptr;
 
-MotorObject::MotorObject(std::string rid, int hid)
+MotorObject::MotorObject(std::string rid, int hid, std::string mode)
 {
     this->rid = rid;
     this->hid = hid;
 
-    if (dxl_wb == nullptr)
-    {
-        dxl_wb = std::make_unique<DynamixelWorkbench>();
-        // TODO: replace "device_name" with the actual device name
-        dxl_wb->init("device_name", 1000000, nullptr);
-    }
+    // TODO: Implement mode
+    this->mode = mode;
 
     dxl_wb->ledOn(hid);
     dxl_wb->torqueOn(hid);
@@ -36,7 +32,7 @@ std::tuple<double, double> MotorObject::get_state() const
 
 void MotorObject::print_info() const
 {
-    std::cout << "MotorObject with RID: " << rid << ", HID: " << hid << std::endl;
+    std::cout << "MotorObject with RID " << rid << ", HID " << hid << ", mode " << mode << std::endl;
     // set output="screen" in launch file to see this message
 }
 

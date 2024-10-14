@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    dxl_port: "/dev/ttyUSB0"
+    dxl_baudrate: 57600
+
+    motor:
+      rids: ["A", "B"] # TODO
+      hids: [1, 2]
+      modes: ["pos", "pos"]

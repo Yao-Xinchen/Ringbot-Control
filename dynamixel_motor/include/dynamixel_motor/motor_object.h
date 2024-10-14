@@ -12,7 +12,9 @@
 class MotorObject
 {
 public:
-    MotorObject(std::string rid, int hid);
+    MotorObject(std::string rid, int hid, std::string mode);
+
+    static void init(std::string port_name, uint32_t baud_rate);
 
     void set_goal(double pos, double vel);
 
@@ -26,6 +28,7 @@ private:
     std::string rid; // ROS ID
     int hid; // Hardware ID
 
+    std::string mode;
     float goal_pos;
     float goal_vel;
 
