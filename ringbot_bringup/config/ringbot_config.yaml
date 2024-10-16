@@ -6,4 +6,4 @@
     motor:
       rids: ["A", "B"] # TODO
       hids: [1, 2]
-      modes: ["pos", "pos"]
+      modes: ["POS", "POS"]

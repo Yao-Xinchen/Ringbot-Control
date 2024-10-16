@@ -9,6 +9,9 @@
 
 #include "dynamixel_workbench/dynamixel_workbench.h"
 
+#define TX_RATE 5 // ms
+#define RX_RATE 5 // ms
+
 class MotorObject
 {
 public:
