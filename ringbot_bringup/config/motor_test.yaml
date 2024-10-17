@@ -1,0 +1,10 @@
+/**:
+  ros__parameters:
+    dxl_port: "/dev/ttyUSB0"
+    dxl_baudrate: 57600
+
+    motor:
+      enables: [true]
+      rids: ["A"]
+      hids: [1]
+      modes: ["VEL"]
