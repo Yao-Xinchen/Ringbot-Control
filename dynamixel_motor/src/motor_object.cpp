@@ -23,13 +23,14 @@ MotorObject::MotorObject(std::string rid, int hid, std::string mode)
     dxl_wb->torqueOn(hid);
 
     tx_thread = std::thread(&MotorObject::tx_loop, this);
+    rx_thread = std::thread(&MotorObject::rx_loop, this);
 }
 
 void MotorObject::init(std::string port_name, uint32_t baud_rate)
 {
     dxl_wb = std::make_unique<DynamixelWorkbench>();
 
-    auto success = dxl_wb->begin(port_name.c_str(), baud_rate);
+    auto success = dxl_wb->init(port_name.c_str(), baud_rate);
 
     if (success)
     {

@@ -32,13 +32,14 @@ private:
     int hid; // Hardware ID
 
     std::string mode;
-    float goal_pos;
-    float goal_vel;
+    float goal_pos = 0;
+    float goal_vel = 0;
 
-    float fb_pos;
-    float fb_vel;
+    float fb_pos = 0;
+    float fb_vel = 0;
 
     std::thread tx_thread;
+    std::thread rx_thread;
 
     void tx_loop();
     
