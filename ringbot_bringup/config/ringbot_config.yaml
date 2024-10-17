@@ -4,6 +4,7 @@
     dxl_baudrate: 57600
 
     motor:
-      rids: ["A", "B"] # TODO
-      hids: [1, 2]
-      modes: ["POS", "POS"]
+      enables: [true]
+      rids: ["A"]
+      hids: [1]
+      modes: ["VEL"]

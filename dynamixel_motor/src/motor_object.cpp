@@ -29,7 +29,9 @@ void MotorObject::init(std::string port_name, uint32_t baud_rate)
 {
     dxl_wb = std::make_unique<DynamixelWorkbench>();
 
-    if (dxl_wb->begin(port_name.c_str(), baud_rate))
+    auto success = dxl_wb->begin(port_name.c_str(), baud_rate);
+
+    if (success)
     {
         RCLCPP_INFO(rclcpp::get_logger("MotorObject"),
             "\033[32mSucceeded to open Workbench on port %s\033[0m", port_name.c_str()); // green
