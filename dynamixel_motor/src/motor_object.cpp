@@ -12,15 +12,30 @@ MotorObject::MotorObject(std::string rid, int hid, std::string mode)
 
     this->mode = mode;
 
-    if (mode == "POS") dxl_wb->setPositionControlMode(hid);
-    else if (mode == "VEL") dxl_wb->setVelocityControlMode(hid);
+    // log
+    const char* log;
+
+    auto success = dxl_wb->ping(hid, &log);
+    // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "Ping: %s", log);
+    if (!success)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mFailed to ping motor %s\033[0m", rid.c_str()); // red
+        rclcpp::shutdown();
+    }
+
+    if (mode == "POS") dxl_wb->jointMode(hid, 0, 0, &log);
+    else if (mode == "VEL") dxl_wb->wheelMode(hid, 0, &log);
     else {
         RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mInvalid mode %s\033[0m", mode.c_str()); // red
         rclcpp::shutdown();
     }
+    // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "wheelMode: %s", log);
 
-    dxl_wb->ledOn(hid);
-    dxl_wb->torqueOn(hid);
+    dxl_wb->ledOn(hid, &log);
+    // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "ledOn: %s", log);
+
+    dxl_wb->torqueOn(hid, &log);
+    // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "torqueOn: %s", log);
 
     tx_thread = std::thread(&MotorObject::tx_loop, this);
     rx_thread = std::thread(&MotorObject::rx_loop, this);
@@ -77,13 +92,15 @@ void MotorObject::tx_loop()
 {
     while (rclcpp::ok())
     {
+        const char* log;
         bool success = true;
-        if (mode == "POS") success = dxl_wb->goalPosition(hid, goal_vel);
-        if (mode == "VEL") success = dxl_wb->goalVelocity(hid, goal_vel);
+        if (mode == "POS") success = dxl_wb->goalPosition(hid, goal_pos, &log);
+        // if (mode == "VEL") success = dxl_wb->goalVelocity(hid, 100, &log);
+        if (mode == "VEL") success = dxl_wb->goalVelocity(hid, goal_vel, &log);
 
         if (!success)
         {
-            RCLCPP_WARN(rclcpp::get_logger("MotorObject"), "Failed to set goal data");
+            RCLCPP_WARN(rclcpp::get_logger("MotorObject"), "Error: %s", log);
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(TX_RATE));
@@ -94,13 +111,14 @@ void MotorObject::rx_loop()
 {
     while (rclcpp::ok())
     {
+        const char* log;
         bool success = true;
-        success &= dxl_wb->getRadian(hid, &fb_pos);
-        success &= dxl_wb->getVelocity(hid, &fb_vel);
+        success &= dxl_wb->getRadian(hid, &fb_pos, &log);
+        success &= dxl_wb->getVelocity(hid, &fb_vel, &log);
 
         if (!success)
         {
-            RCLCPP_WARN(rclcpp::get_logger("MotorObject"), "Failed to get feedback data");
+            RCLCPP_WARN(rclcpp::get_logger("MotorObject"), "Error: %s", log);
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(RX_RATE));
