@@ -17,6 +17,8 @@ class MotorObject
 public:
     MotorObject(std::string rid, int hid, std::string mode);
 
+    ~MotorObject();
+
     static void init(std::string port_name, uint32_t baud_rate);
 
     void set_goal(double pos, double vel);
@@ -32,11 +34,11 @@ private:
     int hid; // Hardware ID
 
     std::string mode;
-    float goal_pos = 0;
-    float goal_vel = 0;
+    float goal_pos = 0.0;
+    float goal_vel = 0.0;
 
-    float fb_pos = 0;
-    float fb_vel = 0;
+    float fb_pos = 0.0;
+    float fb_vel = 0.0;
 
     std::thread tx_thread;
     std::thread rx_thread;
@@ -44,6 +46,8 @@ private:
     void tx_loop();
     
     void rx_loop();
+
+    void ping();
 };
 
 #endif // MOTOR_OBJECT_H

@@ -15,16 +15,8 @@ MotorObject::MotorObject(std::string rid, int hid, std::string mode)
     // log
     const char* log;
 
-    auto success = dxl_wb->ping(hid, &log);
-    // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "Ping: %s", log);
-    if (!success)
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mFailed to ping motor %s\033[0m", rid.c_str()); // red
-        rclcpp::shutdown();
-    }
-
-    if (mode == "POS") dxl_wb->jointMode(hid, 0, 0, &log);
-    else if (mode == "VEL") dxl_wb->wheelMode(hid, 0, &log);
+    if (mode == "POS") dxl_wb->setPositionControlMode(hid, &log);
+    else if (mode == "VEL") dxl_wb->setVelocityControlMode(hid, &log);
     else {
         RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mInvalid mode %s\033[0m", mode.c_str()); // red
         rclcpp::shutdown();
@@ -39,6 +31,14 @@ MotorObject::MotorObject(std::string rid, int hid, std::string mode)
 
     tx_thread = std::thread(&MotorObject::tx_loop, this);
     rx_thread = std::thread(&MotorObject::rx_loop, this);
+}
+
+MotorObject::~MotorObject()
+{
+    dxl_wb->ledOff(hid);
+    dxl_wb->torqueOff(hid);
+    tx_thread.join();
+    rx_thread.join();
 }
 
 void MotorObject::init(std::string port_name, uint32_t baud_rate)
@@ -95,8 +95,20 @@ void MotorObject::tx_loop()
         const char* log;
         bool success = true;
         if (mode == "POS") success = dxl_wb->goalPosition(hid, goal_pos, &log);
-        // if (mode == "VEL") success = dxl_wb->goalVelocity(hid, 100, &log);
         if (mode == "VEL") success = dxl_wb->goalVelocity(hid, goal_vel, &log);
+
+        // if (mode == "POS")
+        // {
+        //     auto value = dxl_wb->convertRadian2Value(hid, goal_pos);
+        //     std::cout << "pos value: " << value << std::endl;
+        //     success &= dxl_wb->goalPosition(hid, value, &log);
+        // }
+        // if (mode == "VEL")
+        // {
+        //     auto value = dxl_wb->convertVelocity2Value(hid, goal_vel);
+        //     std::cout << "vel value: " << value << std::endl;
+        //     success &= dxl_wb->goalVelocity(hid, value, &log);
+        // }
 
         if (!success)
         {
@@ -122,5 +134,15 @@ void MotorObject::rx_loop()
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(RX_RATE));
+    }
+}
+
+void MotorObject::ping()
+{
+    auto success = dxl_wb->ping(hid);
+    if (!success)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mFailed to ping motor %s\033[0m", rid.c_str()); // red
+        rclcpp::shutdown();
     }
 }
