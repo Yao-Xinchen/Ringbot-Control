@@ -10,18 +10,27 @@ MotorObject::MotorObject(std::string rid, int hid, std::string mode)
     this->rid = rid;
     this->hid = hid;
 
-    this->mode = mode;
+    if (mode == "POS") this->mode = POS;
+    else if (mode == "VEL") this->mode = VEL;
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mInvalid mode %s\033[0m", mode.c_str()); // red
+        rclcpp::shutdown();
+    }
 
     // log
     const char* log;
 
-    if (mode == "POS") dxl_wb->setPositionControlMode(hid, &log);
-    else if (mode == "VEL") dxl_wb->setVelocityControlMode(hid, &log);
-    else {
-        RCLCPP_ERROR(rclcpp::get_logger("MotorObject"), "\033[31mInvalid mode %s\033[0m", mode.c_str()); // red
-        rclcpp::shutdown();
+    // set mode
+    switch (this->mode)
+    {
+    case POS:
+        dxl_wb->setPositionControlMode(hid, &log); break;
+    case VEL:
+        dxl_wb->setVelocityControlMode(hid, &log); break;
+    default:
+        break;
     }
-    // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "wheelMode: %s", log);
 
     dxl_wb->ledOn(hid, &log);
     // RCLCPP_INFO(rclcpp::get_logger("MotorObject"), "ledOn: %s", log);
@@ -65,15 +74,20 @@ void MotorObject::set_goal(double pos, double vel)
     goal_pos = pos;
     goal_vel = vel;
 
-    if (mode == "POS" && !std::isnan(goal_vel))
+    switch (mode)
     {
+    case POS:
+        if (std::isnan(goal_vel)) break;
         RCLCPP_WARN(rclcpp::get_logger("MotorObject"),
             "\033[33mMotor %s is in POS mode, but velocity is set\033[0m", rid.c_str()); // yellow
-    }
-    if (mode == "VEL" && !std::isnan(goal_pos))
-    {
+        break;
+    case VEL:
+        if (std::isnan(goal_pos)) break;
         RCLCPP_WARN(rclcpp::get_logger("MotorObject"),
             "\033[33mMotor %s is in VEL mode, but position is set\033[0m", rid.c_str());
+        break;
+    default:
+        break;
     }
 }
 
@@ -94,20 +108,33 @@ void MotorObject::tx_loop()
     {
         const char* log;
         bool success = true;
-        if (mode == "POS") success = dxl_wb->goalPosition(hid, goal_pos, &log);
-        if (mode == "VEL") success = dxl_wb->goalVelocity(hid, goal_vel, &log);
 
-        // if (mode == "POS")
+        switch (mode)
+        {
+        case POS:
+            success = dxl_wb->goalPosition(hid, goal_pos, &log); break;
+        case VEL:
+            success = dxl_wb->goalVelocity(hid, goal_vel, &log); break;
+        default:
+            break;
+        }
+
+        // switch (mode)
         // {
+        // case POS: {
         //     auto value = dxl_wb->convertRadian2Value(hid, goal_pos);
         //     std::cout << "pos value: " << value << std::endl;
         //     success &= dxl_wb->goalPosition(hid, value, &log);
+        //     break;
         // }
-        // if (mode == "VEL")
-        // {
+        // case VEL: {
         //     auto value = dxl_wb->convertVelocity2Value(hid, goal_vel);
         //     std::cout << "vel value: " << value << std::endl;
         //     success &= dxl_wb->goalVelocity(hid, value, &log);
+        //     break;
+        // }
+        // default:
+        //     break;
         // }
 
         if (!success)

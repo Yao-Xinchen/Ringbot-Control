@@ -33,7 +33,8 @@ private:
     std::string rid; // ROS ID
     int hid; // Hardware ID
 
-    std::string mode;
+    enum {POS, VEL} mode;
+
     float goal_pos = 0.0;
     float goal_vel = 0.0;
 
